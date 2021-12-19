@@ -1,4 +1,5 @@
 import os
+from typing import Tuple
 import discord
 import youtube_dl
 import json
@@ -10,7 +11,6 @@ from dotenv import load_dotenv
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 SERVER_ID = os.getenv('SERVER_ID')
-
 
 client = discord.Client()
 
@@ -42,10 +42,13 @@ async def on_message(message):
         for banText in banTexts:
             if banText in message.content:
                 mute = True
+        if "歐" in message.content and "杰" in message.content:
+            mute = True
+
         if mute:
             banPerson = message.author
             await message.channel.purge(limit=1)
-            await message.channel.send(f"{banPerson.name}，您所發送的訊息含有本伺服器禁止提及之人事物，因此該訊息已被刪除\n並因為您違反本伺服器第0條規則，經由大老二Jessica判處後將您送至熊熊監獄坐牢")
+            await message.channel.send(f"{banPerson.mention}，您所發送的訊息違反本伺服器第0條規則[含有本伺服器禁止提及之人事物]，因此該訊息已被刪除\n並經由大老二Jessica判處後將您送至熊熊監獄坐牢")
             # 記錄犯罪次數
             banCount = dict()
             # Opening JSON file
@@ -59,11 +62,14 @@ async def on_message(message):
             else:
                 print("Not in list")
                 banCount.update({banPerson.name:1})
-
-            if banCount[banPerson.name] > 3 and banCount[banPerson.name] <= 10:
+            if banCount[banPerson.name] < 3:
+                await message.channel.send(f"{banPerson.name} 您違法第{banCount[banPerson.name]}次")
+            elif banCount[banPerson.name] > 3 and banCount[banPerson.name] <= 10:
                 await message.channel.send(f"{banPerson.name} 請注意！您已經違法第{banCount[banPerson.name]}次")
-            elif banCount[banPerson.name] > 10:
+            elif banCount[banPerson.name] > 10 and banCount[banPerson.name] <= 20:
                 await message.channel.send(f"警告！{banPerson.name}已經違法第{banCount[banPerson.name]}次，本頻道有暴露的可能性")
+            else:
+                await message.channel.send(f"{banPerson.name}已經違法第{banCount[banPerson.name]}次，這個人是內鬼的機率很高")
 
             with open('banCount.json', 'w') as f:
                 json_object = json.dumps(banCount, indent = 4)
