@@ -1,36 +1,119 @@
 import os
-from typing import Tuple
+import asyncio
 import discord
 import youtube_dl
 import json
 from dictionary import *
-from discord import channel
-from discord import guild
+from discord import channel,guild
+from discord.ext import commands
 from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 SERVER_ID = os.getenv('SERVER_ID')
 
-client = discord.Client()
+# Create Bot Object
+# intents = discord.Intents().all()
+# client = discord.Client()
+bot = commands.Bot(command_prefix='~')
 
-@client.event
+# Music bot settings
+youtube_dl.utils.bug_reports_message = lambda: ''
+
+ytdl_format_options = {
+    'format': 'bestaudio/best',
+    'restrictfilenames': True,
+    'noplaylist': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': False,
+    'logtostderr': False,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'auto',
+    'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
+}
+
+ffmpeg_options = {
+    'options': '-vn'
+}
+
+ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
+# Download the audio file from the video link
+class YTDLSource(discord.PCMVolumeTransformer):
+    def __init__(self, source, *, data, volume=0.5):
+        super().__init__(source, volume)
+        self.data = data
+        self.title = data.get('title')
+        self.url = ""
+
+    @classmethod
+    async def from_url(cls, url, *, loop=None, stream=False):
+        loop = loop or asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+        if 'entries' in data:
+            # take first item from a playlist
+            data = data['entries'][0]
+        filename = data['title'] if stream else ytdl.prepare_filename(data)
+        return filename
+
+@bot.command()
+async def debug(ctx):
+    await ctx.send("d")
+
+
+@bot.command(name='join', help='Tells the bot to join the voice channel')
+async def join(ctx):
+    if not ctx.message.author.voice:
+        await ctx.send("{} is not connected to a voice channel".format(ctx.message.author.name))
+        return
+    else:
+        channel = ctx.message.author.voice.channel
+    await channel.connect()
+
+@bot.command(name='leave', help='To make the bot leave the voice channel')
+async def leave(ctx):
+    voice_client = ctx.message.guild.voice_client
+    if voice_client.is_connected():
+        await voice_client.disconnect()
+    else:
+        await ctx.send("The bot is not connected to a voice channel.")
+
+@bot.command(name='play_song', help='To play song')
+async def play(ctx,url):
+    print("Command [play_song]")
+    try :
+        server = ctx.message.guild
+        voice_channel = server.voice_client
+
+        async with ctx.typing():
+            filename = await YTDLSource.from_url(url, loop=bot.loop)
+            voice_channel.play(discord.FFmpegPCMAudio(executable="ffmpeg.exe", source=filename))
+        await ctx.send('**Now playing:** {}'.format(filename))
+    except:
+        await ctx.send("The bot is not connected to a voice channel.")
+
+@bot.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
+    print('We have logged in as {0.user}\n'.format(bot))
+    for guild in bot.guilds:
+        for channel in guild.text_channels :
+            print("Channel:{}".format(str(channel)))
+        print('\nActive in {}\n'.format(guild.name))
+        print("--------------------------------------")
 
-@client.event
+@bot.event
 async def on_member_update(before, after):
     print("Who:",after)
     print("Status:",str(after.status))
     print("Activity:",str(after.activity))
     if str(after.status) == "online":
-        await discord.utils.get(client.get_all_channels(), name="林阿罵👅💦").send("上甚麼線觘機掰")
+        await discord.utils.get(bot.get_all_channels(), name="林阿罵👅💦").send("上甚麼線觘機掰")
 
-@client.event
+@bot.event
 async def on_message(message):
     # print(message)
     # 避免機器人自己回應自己的話
-    if message.author == client.user:
+    if message.author == bot.user:
         return
     if str(message.channel) in channels:
         for i2 in i2Texts:
@@ -81,12 +164,7 @@ async def on_message(message):
                 await banPerson.edit(mute=True)
                 # print(str(banPerson.voice.channel))
                 await banPerson.move_to(banChannel)
-
-# @client.command()
-# async def play(ctx, url : str):
-#     server = ctx.message.server
-#     voiceChannel = client.voice_client_in(server)
-#     player = await voiceChannel.create_ytdl_player(url)
+    await bot.process_commands(message)
 
 banCount = dict()
-client.run(TOKEN)
+bot.run(TOKEN)
