@@ -11,6 +11,11 @@ ffmpeg.exe
 # Develope Usage
 *.html
 *.txt
+# Develope
+
+# Develope Usage
+*.html
+*.txt
 TODO.md
 CHANGELOG.md
 
