@@ -1,6 +1,18 @@
 /__pycache__
+/songs
 
 *.json
+*.webm
+*.webm.part
+
+*.jpg
+ffmpeg.exe
+
+# Develope Usage
+*.html
+*.txt
+TODO.md
+CHANGELOG.md
 
 # Environments
 .env

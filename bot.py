@@ -80,15 +80,30 @@ async def leave(ctx):
 
 @bot.command(name='play_song', help='To play song')
 async def play(ctx,url):
-    print("Command [play_song]")
+    print("Command [~play_song]")
     try :
+        '''
+            Play youtube music "without" download version
+        '''
+        ydl_opts = {'format': 'bestaudio'}
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            URL = info['formats'][0]['url']
         server = ctx.message.guild
         voice_channel = server.voice_client
+        voice_channel.play(discord.FFmpegPCMAudio(URL))
 
-        async with ctx.typing():
-            filename = await YTDLSource.from_url(url, loop=bot.loop)
-            voice_channel.play(discord.FFmpegPCMAudio(executable="ffmpeg.exe", source=filename))
-        await ctx.send('**Now playing:** {}'.format(filename))
+        '''
+            Play youtube music "with" download version
+        '''
+        # server = ctx.message.guild
+        # voice_channel = server.voice_client
+        
+        # await ctx.send("Downloading Music...")
+        # async with ctx.typing():
+        #     filename = await YTDLSource.from_url(url, loop=bot.loop)
+        #     voice_channel.play(discord.FFmpegPCMAudio(executable="ffmpeg.exe", source=filename))
+        # await ctx.send('**Now playing:** {}'.format(filename))
     except:
         await ctx.send("The bot is not connected to a voice channel.")
 
