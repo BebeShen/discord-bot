@@ -11,6 +11,7 @@ import json
 import datetime
 import random
 import subprocess
+import yt
 from requests import get
 from objects import *
 from discord import channel,guild
@@ -84,8 +85,22 @@ async def purge(ctx, num):
         return
     await ctx.channel.purge(limit=int(num))
 
-@bot.command(aliases=['新片','jable'], help='Web Crawler')
+@bot.command(aliases=['新片'], help='Web Crawler')
 async def jav(ctx):
+    if str(ctx.channel) == "林阿罵👅💦":
+        print("Test")
+        y = yt.ytSearcher()
+        videos = y.searchNewest()
+        dtime = datetime.datetime.strptime(videos[0]['snippet']['publishTime'], '%Y-%m-%dT%H:%M:%SZ')
+        embedMessages = discord.Embed(title="新片", description="上片時間："+dtime.strftime("%Y-%m-%d %H:%M:%S"))
+        embedMessages.set_image(url=videos[0]['snippet']['thumbnails']['high']['url'])
+        embedMessages.add_field(
+            name = videos[0]['snippet']['channelTitle'], 
+            value = "[" + videos[0]['snippet']['title'] + "](https://www.youtube.com/watch?v=" + videos[0]['id']['videoId'] + ")"
+        )
+        await ctx.send(embed=embedMessages)
+        del y
+        return
     if str(ctx.channel) != "jayoble_tv":
         return
     buttons = [u"\u23EA", u"\u25C0", u"\u25B6", u"\u23E9"]

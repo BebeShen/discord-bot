@@ -19,8 +19,7 @@ class goalKeeper:
         self.cookies = dict(
             kt_ips="111.255.163.190", 
             kt_tcookie="1",
-            PHPSESSID="ct221jv26ags1al52de16j00ru", 
-            __cf_bm="0enq4_FgmyJ7MKZbsvHnI2tChprYHgQ0HyEQAxp2kNI-1641620284-0-AXSI17b6/bv8y/+CWONX0Dz4rq6sQ7k5DieC/sT3GchuT4w/OVHTfgngO+n68m/Xlzo8wg4g0HKsMXb9SJj0WMI="
+            __cf_bm="JQJP1eksSp_l7ofspvkeYCNGG3TTLS0Q8PPXv4btIeQ-1641814646-0-AapUT4Bc/oIwvnn0YbVtpddr7Jg/2brRtJUEI7497PxOz5z3ppC+rfWPo0wJLDoM2AvgygQAj/wqbILG78KAdbI="
         )
     
     def testping(self):
@@ -28,11 +27,18 @@ class goalKeeper:
             測試是否能正常使用
         '''
         url = 'https://jable.tv/'
-        scraper = cloudscraper.create_scraper(delay=10)
+        scraper = cloudscraper.create_scraper(delay = 10)
+        response = scraper.get(url)
         try:
-            html = scraper.get(url, headers=self.httpHeader2,timeout=0.5).text
-            # scraper.get(url=url,timeout=0.5)
-            print(html)
+            print(response.cookies.get_dict())
+            if response.cookies.get_dict()['PHPSESSID'] != None:
+                self.cookies['PHPSESSID'] = response.cookies.get_dict()['PHPSESSID']
+            # if response.cookies.get_dict()['__cf_bm'] != None:
+                self.cookies['__cf_bm'] = response.cookies.get_dict()['__cf_bm']
+            print("===========")
+            print(self.cookies)
+
+            # html = scraper.get(url, cookies=self.cookies, headers=self.httpHeader2, timeout=1).text
             return True
         except:
             return False
@@ -117,4 +123,6 @@ class goalKeeper:
 
 if __name__ == '__main__':
     g = goalKeeper()
+    if not g.testping():
+        print("Fail")
     j = g.getNewest()
