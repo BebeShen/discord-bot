@@ -33,10 +33,8 @@ class goalKeeper:
             print(response.cookies.get_dict())
             if response.cookies.get_dict()['PHPSESSID'] != None:
                 self.cookies['PHPSESSID'] = response.cookies.get_dict()['PHPSESSID']
-            # if response.cookies.get_dict()['__cf_bm'] != None:
-                self.cookies['__cf_bm'] = response.cookies.get_dict()['__cf_bm']
-            print("===========")
             print(self.cookies)
+            print("===========")
 
             # html = scraper.get(url, cookies=self.cookies, headers=self.httpHeader2, timeout=1).text
             return True
@@ -57,12 +55,13 @@ class goalKeeper:
             section = soup.find('section', class_="pb-3 pb-e-lg-40")
             videos = section.find_all('div', class_="video-img-box mb-e-20")
             for video in videos:
-                imageURL = str(video.select('img')).split(' ')[4][10:-1]
-                # print("圖片", imageURL)
+                # [9:-1] remove `data-src="`
+                imageURL = str(video.select('img')).split(' ')[3][10:-1]
+                print("圖片", imageURL)
                 link = video.select('a')
-                # print("連結", link[1].get("href"))
+                print("連結", link[1].get("href"))
                 number = link[1].getText().split()[0]
-                # print("番號", number)
+                print("番號", number)
                 info = link[1].getText()
                 info = info[info.find(' ')+1:]
                 returnList.append({
@@ -81,17 +80,17 @@ class goalKeeper:
             lastModifyTime = datetime.fromtimestamp(lastModifyTime).strftime('%Y/%m/%d %H:%M:%S')
             print(f"OOPS！好像腳斷了找不到欸。以下為{lastModifyTime}時儲存的紀錄，如欲查詢最新，請稍後重試")
             with open(filename, 'r',encoding="utf-8") as f:
-                # print(f.read())
+                print(f.read())
                 soup = BeautifulSoup(f, "html.parser")
             section = soup.find('section', class_="pb-3 pb-e-lg-40")
             videos = section.find_all('div', class_="video-img-box mb-e-20")
             for video in videos:
                 imageURL = str(video.select('img')).split(' ')[4][10:-1]
-                # print("圖片", imageURL)
+                print("圖片", imageURL)
                 link = video.select('a')
-                # print("連結", link[1].get("href"))
+                print("連結", link[1].get("href"))
                 number = link[1].getText().split()[0]
-                # print("番號", number)
+                print("番號", number)
                 info = link[1].getText()
                 info = info[info.find(' ')+1:]
                 returnList.append({
@@ -100,7 +99,7 @@ class goalKeeper:
                     "number": number,
                     "description": info
                 })
-            # print(json.dumps(returnList, indent=4, ensure_ascii=False))
+            print(json.dumps(returnList, indent=4, ensure_ascii=False))
             return lastModifyTime, returnList
 
     def getAll(self):
