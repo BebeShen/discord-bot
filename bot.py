@@ -1,17 +1,17 @@
 # User import file
 from discord import embeds
-import lcu
+# import lcu
 import jbGoalKeeper
 # System import file
 import os
 import asyncio
 import discord
-import youtube_dl
+# import youtube_dl
 import json
 import datetime
 import random
 import subprocess
-import yt
+# import yt
 from requests import get
 from objects import *
 from discord import channel,guild
@@ -24,9 +24,11 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 SERVER_ID = os.getenv('SERVER_ID')
 
 # Create Bot Object
-# intents = discord.Intents().all()
+intents = discord.Intents().all()
 # client = discord.Client()
-bot = commands.Bot(command_prefix='~')
+# intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(intents=intents, command_prefix='~')
 
 
 #############################################################
@@ -85,23 +87,9 @@ async def purge(ctx, num):
         return
     await ctx.channel.purge(limit=int(num))
 
-@bot.command(aliases=['新片'], help='Web Crawler')
+@bot.command(aliases=['JAV'], help='Web Crawler')
 async def jav(ctx):
-    if str(ctx.channel) == "林阿罵👅💦":
-        print("Test")
-        y = yt.ytSearcher()
-        videos = y.searchNewest()
-        dtime = datetime.datetime.strptime(videos[0]['snippet']['publishTime'], '%Y-%m-%dT%H:%M:%SZ')
-        embedMessages = discord.Embed(title="新片", description="上片時間："+dtime.strftime("%Y-%m-%d %H:%M:%S"))
-        embedMessages.set_image(url=videos[0]['snippet']['thumbnails']['high']['url'])
-        embedMessages.add_field(
-            name = videos[0]['snippet']['channelTitle'], 
-            value = "[" + videos[0]['snippet']['title'] + "](https://www.youtube.com/watch?v=" + videos[0]['id']['videoId'] + ")"
-        )
-        await ctx.send(embed=embedMessages)
-        del y
-        return
-    if str(ctx.channel) != "jayoble_tv":
+    if str(ctx.channel) != "jayoble_tv-12月瘋狂更新":
         return
     buttons = [u"\u23EA", u"\u25C0", u"\u25B6", u"\u23E9"]
     jav = jbGoalKeeper.goalKeeper
@@ -124,7 +112,7 @@ async def jav(ctx):
     while True:
         try:
         # 設閒置時限為5秒
-            reaction, user = await bot.wait_for("reaction_add", check=lambda reaction, user: user==ctx.author and reaction.emoji in buttons, timeout=5.0)
+            reaction, user = await bot.wait_for("reaction_add", check=lambda reaction, user: user==ctx.author and reaction.emoji in buttons, timeout=10.0)
         # 結束
         except asyncio.TimeoutError:
             e = embedMessagesList[current]  
@@ -150,37 +138,6 @@ async def jav(ctx):
             if current != pre_page:
                 await msg.edit(embed=embedMessagesList[current])
 
-@bot.command(name='tft', help='Show infomations about TFT')
-async def tft(ctx):
-    await ctx.send(file=discord.File('tft.jpg'))
-
-@bot.command(name='w', help='Tells everyone who is ths most trolling person')
-async def w(ctx):
-    if str(ctx.channel) != "林阿罵👅💦":
-        return
-    await ctx.send("R扣正在查內碼，請稍候")
-    child = subprocess.Popen(["python", "lcu.py"], stdout=subprocess.PIPE)
-    # print(child.stdout)
-    raw_data = ""
-    for line in child.stdout:
-        # print(line.decode('UTF-8'))
-        if "Client not open" in str(line.decode('UTF-8')):
-            await ctx.send("客戶端沒開啟")
-            return
-        raw_data += line.decode('UTF-8')
-    # print(raw_data)
-    data = json.loads(raw_data)
-    print(json.dumps(data, indent=4, ensure_ascii=False))
-    if data['availability'] == "offline":
-        await ctx.send("現在很安全，☆☆☆☆☆")
-    elif data['availability'] == "away":
-        await ctx.send("W先生掛離線，請自行斟酌，危險指數★★★☆☆")
-    elif data['availability'] == "dnd":
-        await ctx.send("W先生遊戲中，請自行斟酌，危險指數★★★★☆")
-    elif data['availability'] == "chat":
-        await ctx.send("W先生上線綠燈中，危險指數★★★★★")
-    # subprocess.call("lcu.py", shell=True)
-
 @bot.command(name='brad', help='Tells everyone who is brad')
 async def brad(ctx):
     await ctx.send(brad_contents[random.randint(0, len(brad_contents)-1)])
@@ -204,32 +161,6 @@ async def zonPin(ctx):
 @bot.command(name='ㄘㄨㄚˋ', help='Tells everyone who is G8 person')
 async def t(ctx):
     await ctx.send("ㄘㄨㄚˋ英文觘機掰")
-
-@bot.command(name='show', help='Show records of violation')
-async def show(ctx):
-    print(str(ctx.channel))
-    if str(ctx.channel) == "避難所💬" or str(ctx.channel) == "離題":
-        return
-    banHistory = {}
-    # Opening JSON file
-    with open('banHistory.json', 'r', encoding="utf-8") as f:
-        # returns JSON object as a dictionary
-        banHistory = json.load(f)
-    banHistoryCount = len(banHistory)
-    embedVar = discord.Embed(title="犯罪歷史紀錄", description="看一下誰都在那邊亂講話", color=discord.Colour.dark_grey())
-    people = list(banHistory.keys())
-    lengths = list(len(banHistory[p]) for p in banHistory)
-    maxP = people[lengths.index(max(lengths))]
-    count = 0
-    for ct in banHistory[maxP]:
-        if count >= 6:
-            break
-        embedVar.add_field(name="犯罪人", value=maxP, inline=True)
-        embedVar.add_field(name="犯罪內容", value=ct["banContent"], inline=True)
-        embedVar.add_field(name="犯罪日期", value=ct["banDate"], inline=True)
-        count+=1
-    embedVar.set_footer(text="目前由{}奪下 [犯罪王] 的稱號！總共違法了{}次".format(maxP, max(lengths)))
-    await ctx.channel.send(embed=embedVar)
 
 #############################################################
 # TODO                                                      #
@@ -324,11 +255,11 @@ async def on_member_update(before, after):
 
 @bot.event
 async def on_message(message):
-    # print(message)
     # 避免機器人自己回應自己的話
     if message.author == bot.user:
         return
     if str(message.channel) in channels:
+        # print(message.channel, message.content)
         for i2 in i2Texts:
             if i2 in message.content:
                 await message.channel.send("講那甚麼洨")
@@ -344,7 +275,7 @@ async def on_message(message):
         if mute:
             banHistory = {}
             # Opening JSON file
-            with open('banHistory.json', 'r', encoding="utf-8") as f:
+            with open('banHistory.json', 'wr', encoding="utf-8") as f:
                 # returns JSON object as a dictionary
                 banHistory = json.load(f)
             banHistoryCount = len(banHistory)
